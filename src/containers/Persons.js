@@ -1,50 +1,28 @@
 import React, { Component } from "react";
+import { connect } from "react-redux";
 
 import Person from "../components/Person/Person";
 import AddPerson from "../components/AddPerson/AddPerson";
 
+function makePerson() {
+  return {
+    id: new Date().getTime(), // not really unique but good enough here!
+    name: "Max",
+    age: Math.floor(Math.random() * 40)
+  };
+}
+
 class Persons extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      persons: []
-    };
-
-    this.personAddedHandler = this.personAddedHandler.bind(this);
-    this.personDeletedHandler = this.personDeletedHandler.bind(this);
-  }
-
-  personAddedHandler() {
-    const newPerson = {
-      id: new Date().getTime(), // not really unique but good enough here!
-      name: "Max",
-      age: Math.floor(Math.random() * 40)
-    };
-
-    this.setState(prevState => {
-      return { persons: prevState.persons.concat(newPerson) };
-    });
-  }
-
-  personDeletedHandler(personId) {
-    this.setState(prevState => {
-      return {
-        persons: prevState.persons.filter(person => person.id !== personId)
-      };
-    });
-  }
-
   render() {
     return (
       <div>
-        <AddPerson personAdded={this.personAddedHandler} />
-        {this.state.persons.map(person => (
+        <AddPerson personAdded={() => this.props.addUser(makePerson())} />
+        {this.props.users.map(person => (
           <Person
             key={person.id}
             name={person.name}
             age={person.age}
-            clicked={() => this.personDeletedHandler(person.id)}
+            clicked={() => this.props.removeUser(person.id)}
           />
         ))}
       </div>
@@ -52,4 +30,16 @@ class Persons extends Component {
   }
 }
 
-export default Persons;
+const mapStateToProps = state => ({
+  users: state.users
+});
+
+const mapDispatchToProps = dispatch => ({
+  addUser: person => dispatch({ type: "ADD_USER", value: person }),
+  removeUser: id => dispatch({ type: "REMOVE_USER", value: id })
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Persons);
